@@ -1,0 +1,32 @@
+{
+  "name": "swe-bump-bench",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "module": "true",
+  "scripts": {
+    "data": "pnpm with-env tsx src/index.ts",
+    "with-env": "dotenv -e .env -c --"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@commander-js/extra-typings": "^12.0.1",
+    "@octokit/core": "^5.1.0",
+    "@octokit/graphql": "^7.0.2",
+    "@octokit/plugin-throttling": "^7.0.0",
+    "@t3-oss/env-core": "^0.9.2",
+    "base64url": "^3.0.1",
+    "mustache": "^4.2.0",
+    "papaparse": "^5.4.1",
+    "radash": "^12.1.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/mustache": "^4.2.5",
+    "@types/node": "^20.12.4",
+    "@types/papaparse": "^5.3.14",
+    "dotenv-cli": "^7.4.1"
+  }
+}
