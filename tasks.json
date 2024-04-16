@@ -1,0 +1,20 @@
+[{
+  "name": "cypress-codegen",
+  "owner": "ExpediaGroup",
+  "prUrl": "https://github.com/ExpediaGroup/cypress-codegen/pull/110",
+  "prTitle": "chore(deps-dev): bump cypress from 11.2.0 to 12.0.2",
+  "branchName": "dependabot/npm_and_yarn/cypress-12.0.2",
+  "number": 110,
+  "baseCommit": "be42f59893d07c5a6956fd7aca50f4baf8423380",
+  "event": "closed",
+  "merged": true,
+  "commits": 2,
+  "changedFiles": 3,
+  "id": "ExpediaGroup__cypress-codegen-110",
+  "nodeVersion": "18.4.0",
+  "pkgManager": "npm",
+  "package": "cypress",
+  "versionFrom": "11.2.0",
+  "versionTo": "12.0.2",
+  "patch": "diff --git a/cypress/e2e/e2e-example.cy.ts b/cypress/e2e/e2e-example.cy.ts\nindex 198ccb3..eeebd95 100644\n--- a/cypress/e2e/e2e-example.cy.ts\n+++ b/cypress/e2e/e2e-example.cy.ts\n@@ -14,7 +14,7 @@ limitations under the License.\n const expectedText = 'Kitchen Sink';\n\n describe('Example Test', () => {\n-  before(() => {\n+  beforeEach(() => {\n     cy.visit('https://example.cypress.io/');\n   });\n\ndiff --git a/package-lock.json b/package-lock.json\nindex 6f16b50..2c72df6 100644\n--- a/package-lock.json\n+++ b/package-lock.json\n@@ -21,7 +21,7 @@\n         \"@types/glob\": \"8.0.0\",\n         \"@types/jest\": \"28.1.7\",\n         \"@types/react\": \"18.0.24\",\n-        \"cypress\": \"11.2.0\",\n+        \"cypress\": \"12.0.2\",\n         \"eslint\": \"8.26.0\",\n         \"eslint-plugin-cypress\": \"2.12.1\",\n         \"eslint-plugin-eslint-comments\": \"3.2.0\",\n@@ -7028,9 +7028,9 @@\n       \"dev\": true\n     },\n     \"node_modules/cypress\": {\n-      \"version\": \"11.2.0\",\n-      \"resolved\": \"https://registry.npmjs.org/cypress/-/cypress-11.2.0.tgz\",\n-      \"integrity\": \"sha512-u61UGwtu7lpsNWLUma/FKNOsrjcI6wleNmda/TyKHe0dOBcVjbCPlp1N6uwFZ0doXev7f/91YDpU9bqDCFeBLA==\",\n+      \"version\": \"12.0.2\",\n+      \"resolved\": \"https://registry.npmjs.org/cypress/-/cypress-12.0.2.tgz\",\n+      \"integrity\": \"sha512-WnLx1DpnbF1vbpDBkgP14rK5yS3U+Gvxrv2fsB4Owma26oIyENj7DDRnsJbSZuTfG4mcuUJxAkRHJR2wBqBfMA==\",\n       \"dev\": true,\n       \"hasInstallScript\": true,\n       \"dependencies\": {\n@@ -7081,7 +7081,7 @@\n         \"cypress\": \"bin/cypress\"\n       },\n       \"engines\": {\n-        \"node\": \">=12.0.0\"\n+        \"node\": \"^14.0.0 || ^16.0.0 || >=18.0.0\"\n       }\n     },\n     \"node_modules/cypress/node_modules/commander\": {\n@@ -28571,9 +28571,9 @@\n       \"dev\": true\n     },\n     \"cypress\": {\n-      \"version\": \"11.2.0\",\n-      \"resolved\": \"https://registry.npmjs.org/cypress/-/cypress-11.2.0.tgz\",\n-      \"integrity\": \"sha512-u61UGwtu7lpsNWLUma/FKNOsrjcI6wleNmda/TyKHe0dOBcVjbCPlp1N6uwFZ0doXev7f/91YDpU9bqDCFeBLA==\",\n+      \"version\": \"12.0.2\",\n+      \"resolved\": \"https://registry.npmjs.org/cypress/-/cypress-12.0.2.tgz\",\n+      \"integrity\": \"sha512-WnLx1DpnbF1vbpDBkgP14rK5yS3U+Gvxrv2fsB4Owma26oIyENj7DDRnsJbSZuTfG4mcuUJxAkRHJR2wBqBfMA==\",\n       \"dev\": true,\n       \"requires\": {\n         \"@cypress/request\": \"^2.88.10\",\ndiff --git a/package.json b/package.json\nindex c1e6dee..01c4974 100644\n--- a/package.json\n+++ b/package.json\n@@ -31,7 +31,7 @@\n     \"@types/glob\": \"8.0.0\",\n     \"@types/jest\": \"28.1.7\",\n     \"@types/react\": \"18.0.24\",\n-    \"cypress\": \"11.2.0\",\n+    \"cypress\": \"12.0.2\",\n     \"eslint\": \"8.26.0\",\n     \"eslint-plugin-cypress\": \"2.12.1\",\n     \"eslint-plugin-eslint-comments\": \"3.2.0\","
+}]

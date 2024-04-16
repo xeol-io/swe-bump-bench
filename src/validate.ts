@@ -1,78 +1,96 @@
 import { FileInRepo, PullRequest } from "./services/github/response";
 import { injectGitHubClient } from "./services/github";
-import { RepoCsvItem } from "./types";
 import { cluster } from "radash";
 import Papa from "papaparse";
-import { appendFile, writeFile } from "fs/promises";
-import { exists, existsSync, fstat, readFileSync, statSync } from "fs";
+import { writeFile } from "fs/promises";
+import { existsSync, readFileSync } from "fs";
+import { Task } from "./types";
 
-const client = injectGitHubClient();
+const gh = injectGitHubClient();
 
-export const validate = async (items: RepoCsvItem[]) => {
+const generateTaskId = (owner: string, name: string, number: number) => {
+  return `${owner}__${name}-${number}`;
+};
+
+export const validate = async (items: Task[], output: string) => {
   const batches = cluster(items, 25);
 
   for (const batch of batches) {
-    const results: RepoCsvItem[] = [];
-    console.log("Fetched batch");
-    const prMapBatch = await client.pr.getBatch(batch);
-    const blobMapBatch = await client.repository.blobBatch(batch);
+    console.log("Processing batch of size", batch.length);
+    const results: Task[] = [];
+    const prMapBatch = await gh.pr.getBatch(batch);
+    const blobMapBatch = await gh.repository.blobBatch(batch);
 
-    batch.forEach((item) => {
-      const prKey = `${item.owner}/${item.name}/${item.number}`;
-      const blobKey = `${item.owner}/${item.name}/${item.base_sha}`;
-      const pr = prMapBatch[prKey]?.pullRequest;
-      if (!pr) {
-        return;
-      }
-      const code = blobMapBatch[blobKey]?.object?.entries;
-      if (!code) {
-        return;
-      }
+    await Promise.all(
+      batch.map(async (item) => {
+        const prKey = `${item.owner}/${item.name}/${item.number}`;
+        const blobKey = `${item.owner}/${item.name}/${item.baseCommit}`;
+        const pr = prMapBatch[prKey]?.pullRequest;
+        if (!pr) {
+          return;
+        }
+        const code = blobMapBatch[blobKey]?.object?.entries;
+        if (!code) {
+          return;
+        }
 
-      const hasTsConfig = hasTsconfigFile(code);
-      const hasNvmRc = hasNvmRcFile(code);
-      if (!hasTsConfig || !hasNvmRc) {
-        return;
-      }
+        const hasTsConfig = hasTsconfigFile(code);
+        const hasNvmRc = hasNvmRcFile(code);
+        if (!hasTsConfig || !hasNvmRc) {
+          return;
+        }
 
-      const pkgManager = getPackageManager(code);
-      const nvmRcContent = getNvmRcContent(code);
+        const pkgManager = getPackageManager(code);
+        const nvmRcContent = getNvmRcContent(code);
+        const pkgInfo = getPackageUpgraded(item.prTitle);
+        if (!pkgInfo) {
+          return;
+        }
+        const { pkg, versionFrom, versionTo } = pkgInfo;
+        if (isInInvalidPackageList(pkg)) {
+          return;
+        }
 
-      item.node_version = nvmRcContent;
-      item.pkg_manager = pkgManager;
+        const codeChanges = hasCodeChanges(pr);
+        const onlyOnePackageModified = onlyOnePackageModifiedInPackageJson(pr);
+        if (!codeChanges || !onlyOnePackageModified) {
+          return;
+        }
 
-      const pkgInfo = getPackageUpgraded(item.pr_title);
-      if (!pkgInfo) {
-        return;
-      }
-      const { pkg, versionFrom, versionTo } = pkgInfo;
-      item.package = pkg;
-      item.version_from = versionFrom;
-      item.version_to = versionTo;
+        const patch = await gh.pr.patch({
+          prUrl: item.prUrl,
+        });
 
-      const codeChanges = hasCodeChanges(pr);
-      const onlyOnePackageModified = onlyOnePackageModifiedInPackageJson(pr);
-      if (!codeChanges || !onlyOnePackageModified) {
-        return;
-      }
+        const updatedItem = {
+          ...item,
+          id: generateTaskId(item.owner, item.name, item.number),
+          node_version: nvmRcContent,
+          pkg_manager: pkgManager,
+          package: pkg,
+          version_from: versionFrom,
+          version_to: versionTo,
+          patch,
+        };
 
-      results.push(item);
-    });
+        results.push(updatedItem);
+      })
+    );
 
     if (results.length) {
-      if (existsSync("matches.csv")) {
-        const file = readFileSync("matches.csv", "utf8").toString();
-        const { data } = Papa.parse<RepoCsvItem>(file, {
+      console.log(`Saving ${results.length} records to ${output}`);
+      if (existsSync(output)) {
+        const file = readFileSync(output, "utf8").toString();
+        const { data } = Papa.parse<Task>(file, {
           header: true,
           dynamicTyping: true,
           skipEmptyLines: true,
         });
         const combined = [...data, ...results];
         const csv = Papa.unparse(combined);
-        await writeFile("matches.csv", csv);
+        await writeFile(output, csv);
       } else {
         const csv = Papa.unparse(results);
-        await writeFile("matches.csv", csv);
+        await writeFile(output, csv);
       }
     }
   }
@@ -147,6 +165,10 @@ export const onlyOnePackageModifiedInPackageJson = (node: PullRequest) => {
   }
 
   return packageJsonPath.additions + packageJsonPath.deletions == 2;
+};
+
+const isInInvalidPackageList = (pkg: string) => {
+  return ["prettier"].includes(pkg);
 };
 
 export const hasCodeChanges = (node: PullRequest) => {

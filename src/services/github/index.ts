@@ -16,7 +16,7 @@ import { writeFile } from "fs/promises";
 export const createGitHubClient = (client: Octokit) => {
   return {
     pr: {
-      diff: async ({ prUrl }: { prUrl: string }) => {
+      patch: async ({ prUrl }: { prUrl: string }) => {
         const diffUrl = `${prUrl}.diff`;
         const res = await fetch(`${diffUrl}`);
         if (!res.ok) {
@@ -105,13 +105,13 @@ export const createGitHubClient = (client: Octokit) => {
     },
     repository: {
       blobBatch: async (
-        req: { owner: string; name: string; base_sha: string }[]
+        req: { owner: string; name: string; baseCommit: string }[]
       ) => {
         const template = `
         query {
           {{#queries}}
           {{alias}}: repository(owner: "{{ owner }}", name: "{{ name }}") {
-            object(expression: "{{ base_sha }}:") {
+            object(expression: "{{ baseCommit }}:") {
               ... on Tree {
                 entries {
                   name
@@ -132,7 +132,7 @@ export const createGitHubClient = (client: Octokit) => {
         // encoding of owner and name to use as the alias,
         // and then decode in the response to match the inputs to getBatch
         const queries = req.map((r) => {
-          const alias = base64url(`${r.owner}/${r.name}/${r.base_sha}`);
+          const alias = base64url(`${r.owner}/${r.name}/${r.baseCommit}`);
           return {
             alias,
             ...r,
