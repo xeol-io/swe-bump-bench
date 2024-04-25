@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@commander-js/extra-typings": "^12.0.1",
+    "@npmcli/package-json": "^5.0.3",
     "@octokit/core": "^5.1.0",
     "@octokit/graphql": "^7.0.2",
     "@octokit/plugin-throttling": "^7.0.0",
@@ -22,6 +23,7 @@
     "npm-check-updates": "^16.14.18",
     "papaparse": "^5.4.1",
     "radash": "^12.1.0",
+    "semver": "^7.6.0",
     "simple-git": "^3.24.0",
     "tsx": "^4.7.2",
     "zod": "^3.22.4"
@@ -29,7 +31,9 @@
   "devDependencies": {
     "@types/mustache": "^4.2.5",
     "@types/node": "^20.12.4",
+    "@types/npmcli__package-json": "^4.0.4",
     "@types/papaparse": "^5.3.14",
+    "@types/semver": "^7.5.8",
     "dotenv-cli": "^7.4.1"
   }
 }

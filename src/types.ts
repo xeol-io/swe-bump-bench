@@ -13,20 +13,11 @@ export const TaskSchema = z.object({
   id: z.string(),
   name: z.string(),
   owner: z.string(),
-  prUrl: z.string(),
-  prTitle: z.string(),
-  patch: z.string(),
-  number: z.number(),
-  branchName: z.string(),
   pkgManager: z.string(),
   package: z.string(),
-  versionFrom: z.string(),
   versionTo: z.string(),
   nodeVersion: z.string(),
-  merged: z.boolean(),
-  commits: z.number(),
-  baseCommit: z.string(),
-  changedFiles: z.number(),
+  commit: z.string(),
 });
 
 export const TasksSchema = z.array(TaskSchema);

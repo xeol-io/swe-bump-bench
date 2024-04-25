@@ -9,6 +9,11 @@ const sourceCmd = ". ~/.nvm/nvm.sh &&";
 
 export const nvmUseCmd = async (version?: string) => {
   if (version) {
+    try {
+      await execCmd(`${sourceCmd} nvm version ${version}`);
+    } catch (e) {
+      await execCmd(`${sourceCmd} nvm install ${version}`);
+    }
     const nvmUseCmd = `${sourceCmd} nvm use ${version}`;
     await installPkgManagers(nvmUseCmd);
     return nvmUseCmd;
@@ -19,29 +24,18 @@ export const nvmUseCmd = async (version?: string) => {
     : null;
 
   if (!nvmRc) {
-    try {
-      await execCmd(`${sourceCmd} nvm install --lts`);
-    } catch (e) {
-      console.debug("Error when calling `nvm install --lts`", e);
-    }
-    console.debug("No .nvmrc file found");
-    const nvmUseCmd = `${sourceCmd} nvm use lts/\\*`;
+    await execCmd(`${sourceCmd} nvm install --lts`);
+    const nvmUseCmd = `${sourceCmd} nvm use --lts`;
     await installPkgManagers(nvmUseCmd);
     return nvmUseCmd;
   } else {
     try {
       await execCmd(`${sourceCmd} nvm version ${nvmRc}`);
-      console.debug("Using .nvmrc file");
       const nvmUseCmd = `${sourceCmd} nvm use`;
       await installPkgManagers(nvmUseCmd);
       return nvmUseCmd;
     } catch (e) {
-      console.debug("Installing .nvmrc file");
-      try {
-        await execCmd(`${sourceCmd} nvm install`);
-      } catch (e) {
-        console.debug("Error when calling `nvm install`", e);
-      }
+      await execCmd(`${sourceCmd} nvm install`);
       const nvmUseCmd = `${sourceCmd} nvm use`;
       await installPkgManagers(nvmUseCmd);
       return nvmUseCmd;
@@ -52,4 +46,5 @@ export const nvmUseCmd = async (version?: string) => {
 const installPkgManagers = async (useCmd: string) => {
   await execCmd(`${useCmd} && npm install -g yarn`);
   await execCmd(`${useCmd} && npm install -g pnpm`);
+  await execCmd(`${useCmd} && npm install -g typescript`);
 };

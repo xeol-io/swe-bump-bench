@@ -97,7 +97,6 @@ export const updatePackageJson = async (packageName?: string) => {
     install: "always",
     jsonUpgraded: true,
     packageManager: pkgManager,
-    target: "latest",
     upgrade: true,
     filter: packageName
       ? (name) => name === packageName || name === `@types/${packageName}`

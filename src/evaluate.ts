@@ -1,7 +1,7 @@
 import fs from "fs";
 import { Prediction, PredictionsSchema, Task, TasksSchema } from "./types";
 import { injectGitService } from "./services/git";
-import { SimpleGit } from "simple-git";
+import { ResetMode, SimpleGit } from "simple-git";
 import { run as ncuRun } from "npm-check-updates";
 import { version } from "os";
 import { nvmUseCmd } from "./services/nvm";
@@ -40,10 +40,12 @@ export const predictionIdMap = (predictionsFile: string) => {
 };
 
 export const runEvaluation = async ({
+  logDir,
   tmpDir,
   prediction,
   task,
 }: {
+  logDir: string;
   tmpDir: string;
   prediction: Prediction;
   task: Task;
@@ -52,6 +54,9 @@ export const runEvaluation = async ({
   const tsc = injectTscService();
 
   const { owner, name, pkgManager, id, package: pkgName, nodeVersion } = task;
+
+  console.log(`Running evaluation for ${id}`);
+
   const repoUrl = `https://github.com/${owner}/${name}`;
   const workingDir = `${tmpDir}/${id}`;
 
@@ -61,22 +66,43 @@ export const runEvaluation = async ({
   await git.clone(repoUrl, workingDir);
   await git.cwd(workingDir);
   process.chdir(workingDir);
-  await git.checkout(task.baseCommit);
+  await git.checkout(task.commit);
 
   const nvmCmd = await nvmUseCmd(nodeVersion);
 
   await execCmd(`${nvmCmd} && ${pkgManager} install`);
-  const errsBefore = await tsc.run();
+  const errsBefore = await tsc.run(nvmCmd);
+  if (errsBefore.length > 0) {
+    console.log("INVALID TASK, errors before patching", errsBefore);
+  }
+  await git.reset(ResetMode.HARD);
 
-  await applyPatch(git, prediction.patch);
+  const patchApplied = await applyPatch(git, prediction.patch);
+  if (!patchApplied) {
+    console.log("INVALID TASK, could not apply patch");
+    storeEvaluationResult(prediction.modelName, id, false, logDir);
+    return;
+  }
   await execCmd(`${nvmCmd} && ${pkgManager} install`);
 
-  const errsAfter = await tsc.run();
+  const errsAfter = await tsc.run(nvmCmd);
   if (errsAfter.length > errsBefore.length) {
     console.log("FAILED TASK");
+    storeEvaluationResult(prediction.modelName, id, false, logDir);
   } else {
     console.log("SUCCESSFUL TASK");
+    storeEvaluationResult(prediction.modelName, id, true, logDir);
   }
+};
+
+const storeEvaluationResult = (
+  model: string,
+  id: string,
+  result: boolean,
+  logDir: string
+) => {
+  const filePath = path.join(logDir, `${id}.${model}.eval.log`);
+  fs.writeFileSync(filePath, result.toString());
 };
 
 const applyPatch = async (git: SimpleGit, patch: string) => {
@@ -86,5 +112,15 @@ const applyPatch = async (git: SimpleGit, patch: string) => {
 
   fs.writeFileSync(patchFilePath, contentToWrite);
 
-  await git.applyPatch(patchFilePath);
+  try {
+    await git.applyPatch(patchFilePath, {
+      "--ignore-space-change": null,
+      "--ignore-whitespace": null,
+      "--reject": null,
+    });
+    return true;
+  } catch (e) {
+    console.log("Error applying patch", e);
+    return false;
+  }
 };

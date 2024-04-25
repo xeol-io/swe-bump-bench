@@ -37,6 +37,19 @@ export const createGitHubClient = (client: Octokit) => {
           {{alias}}: repository(owner: "{{ owner }}", name: "{{ name }}") {
             pullRequest(number: {{ number }}) {
               createdAt
+              commits(first: 1) {
+                nodes {
+                  id
+                  commit {
+                    id
+                    checkSuites(first:10) {
+                      nodes {
+                        conclusion
+                      }
+                    }
+                  }
+                }
+              }
               files(first: 10) {
                 nodes {
                   changeType
@@ -105,7 +118,7 @@ export const createGitHubClient = (client: Octokit) => {
     },
     repository: {
       blobBatch: async (
-        req: { owner: string; name: string; baseCommit: string }[]
+        req: { owner: string; name: string; baseCommit?: string }[]
       ) => {
         const template = `
         query {
@@ -132,10 +145,18 @@ export const createGitHubClient = (client: Octokit) => {
         // encoding of owner and name to use as the alias,
         // and then decode in the response to match the inputs to getBatch
         const queries = req.map((r) => {
-          const alias = base64url(`${r.owner}/${r.name}/${r.baseCommit}`);
+          const request = {
+            owner: r.owner,
+            name: r.name,
+            // default to HEAD if no baseCommit is defined
+            baseCommit: r.baseCommit ?? "HEAD",
+          };
+          const alias = base64url(
+            `${request.owner}/${request.name}/${request.baseCommit}`
+          );
           return {
             alias,
-            ...r,
+            ...request,
           };
         });
 

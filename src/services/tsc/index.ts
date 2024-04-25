@@ -96,15 +96,20 @@ export const parse = async (input: string) => {
 
 export const createTscService = (doExec: typeof exec) => {
   return {
-    run: async () => {
+    run: async (nvmCmd: string) => {
       console.log("Running tsc...");
-      const data = await new Promise<string>((resolve, _) => {
+      const data = await new Promise<string>((resolve, reject) => {
         // the --pretty flag is required here so that tsc outputs line number information
         // to stdout
         doExec(
-          `npx tsc --noEmit --pretty --skipLibCheck`,
+          `${nvmCmd} && tsc --noEmit --pretty --skipLibCheck`,
           (error, stdout, stderr) => {
             if (error) {
+              if (stderr.includes("command not found: tsc")) {
+                throw new Error(
+                  "You must have typescript installed to use this service."
+                );
+              }
               resolve(stdout);
             }
             if (stderr) {

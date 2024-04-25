@@ -4,6 +4,24 @@ import { z } from "zod";
 export const PullRequestSchema = z
   .object({
     createdAt: z.string(),
+    commits: z.object({
+      nodes: z.array(
+        z.object({
+          commit: z.object({
+            id: z.string(),
+            checkSuites: z.object({
+              nodes: z.array(
+                z.object({
+                  conclusion: z
+                    .union([z.literal("SUCCESS"), z.literal("FAILURE")])
+                    .nullable(),
+                })
+              ),
+            }),
+          }),
+        })
+      ),
+    }),
     files: z.object({
       nodes: z.array(
         z.object({
