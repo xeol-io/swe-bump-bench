@@ -15,7 +15,6 @@ export const nvmUseCmd = async (version?: string) => {
       await execCmd(`${sourceCmd} nvm install ${version}`);
     }
     const nvmUseCmd = `${sourceCmd} nvm use ${version}`;
-    await installPkgManagers(nvmUseCmd);
     return nvmUseCmd;
   }
 
@@ -26,25 +25,16 @@ export const nvmUseCmd = async (version?: string) => {
   if (!nvmRc) {
     await execCmd(`${sourceCmd} nvm install --lts`);
     const nvmUseCmd = `${sourceCmd} nvm use --lts`;
-    await installPkgManagers(nvmUseCmd);
     return nvmUseCmd;
   } else {
     try {
       await execCmd(`${sourceCmd} nvm version ${nvmRc}`);
       const nvmUseCmd = `${sourceCmd} nvm use`;
-      await installPkgManagers(nvmUseCmd);
       return nvmUseCmd;
     } catch (e) {
       await execCmd(`${sourceCmd} nvm install`);
       const nvmUseCmd = `${sourceCmd} nvm use`;
-      await installPkgManagers(nvmUseCmd);
       return nvmUseCmd;
     }
   }
-};
-
-const installPkgManagers = async (useCmd: string) => {
-  await execCmd(`${useCmd} && npm install -g yarn`);
-  await execCmd(`${useCmd} && npm install -g pnpm`);
-  await execCmd(`${useCmd} && npm install -g typescript`);
 };

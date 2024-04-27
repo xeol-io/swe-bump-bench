@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Prediction, PredictionsSchema, Task, TasksSchema } from "./types";
+import { Prediction, PredictionSchema, Task, TasksSchema } from "./types";
 import { injectGitService } from "./services/git";
 import { ResetMode, SimpleGit } from "simple-git";
 import { nvmUseCmd } from "./services/nvm";
@@ -22,14 +22,17 @@ export const taskIdMap = (tasksFile: string) => {
   return map;
 };
 
-export const predictionIdMap = (predictionsFile: string) => {
+export const predictionIdMap = (predictionsDir: string) => {
   const map = new Map<string, Prediction>();
 
-  if (fs.existsSync(predictionsFile)) {
-    const contents = JSON.parse(fs.readFileSync(predictionsFile, "utf8"));
-    const predictions = PredictionsSchema.parse(contents);
-    predictions.map((prediction) => {
-      map.set(prediction.id, prediction);
+  if (fs.existsSync(predictionsDir)) {
+    fs.readdirSync(predictionsDir).forEach((file) => {
+      if (file.endsWith(".prediction.json")) {
+        const filePath = path.join(predictionsDir, file);
+        const contents = JSON.parse(fs.readFileSync(filePath, "utf8"));
+        const prediction = PredictionSchema.parse(contents);
+        map.set(prediction.id, prediction);
+      }
     });
   }
 
@@ -99,6 +102,7 @@ const storeEvaluationResult = (
   logDir: string
 ) => {
   const filePath = path.join(logDir, `${id}.${model}.eval.log`);
+  console.log(filePath);
   fs.writeFileSync(filePath, result.toString());
 };
 

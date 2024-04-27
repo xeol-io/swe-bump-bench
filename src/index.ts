@@ -44,12 +44,12 @@ collect
   });
 
 evaluate
-  .requiredOption("-p, --predictions-file <file>", "predictions file")
+  .requiredOption("-p, --predictions-dir <directory>", "predictions directory")
   .requiredOption("-l, --log-path <file>", "log dir")
   .requiredOption("-t, --tasks-file <file>", "tasks file")
   .requiredOption("-tb, --testbed-path <file>", "testbed dir")
   .action(async (options) => {
-    const { predictionsFile, tasksFile, logPath, testbedPath } = options;
+    const { predictionsDir, tasksFile, logPath, testbedPath } = options;
 
     if (!fs.existsSync(logPath) || !fs.statSync(logPath).isDirectory()) {
       throw new Error("--log_dir must exist and point at a directory");
@@ -64,7 +64,7 @@ evaluate
     const tasksMap = taskIdMap(tasksFile);
     const tasks = Array.from(tasksMap.values());
 
-    const predictionsMap = predictionIdMap(predictionsFile);
+    const predictionsMap = predictionIdMap(predictionsDir);
     const predictions = Array.from(predictionsMap.values());
 
     for (const prediction of predictions) {
